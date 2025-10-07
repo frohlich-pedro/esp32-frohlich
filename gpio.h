@@ -48,7 +48,6 @@
 #define TIMG1 0x3FF60000
 #define SPI2 0x3FF64000
 #define SPI3 0x3FF65000
-
 #define SYSCON 0x3FF66000
 #define I2C1 0x3FF67000
 #define SDMMC 0x3FF68000
@@ -61,82 +60,240 @@
 #define PWM3 0x3FF70000
 #define RNG 0x3FF75000
 
+#define GPIO_OUT_REG (GPIO + 0x0004)
+#define GPIO_OUT_W1TS_REG (GPIO + 0x0008)
+#define GPIO_OUT_W1TC_REG (GPIO + 0x000C)
+#define GPIO_ENABLE_REG (GPIO + 0x0020)
+#define GPIO_ENABLE_W1TS_REG (GPIO + 0x0024)
+#define GPIO_ENABLE_W1TC_REG (GPIO + 0x0028)
+#define GPIO_IN_REG (GPIO + 0x003C)
+
+#define GPIO_OUT1_REG (GPIO + 0x0010)
+#define GPIO_OUT1_W1TS_REG (GPIO + 0x0014)
+#define GPIO_OUT1_W1TC_REG (GPIO + 0x0018)
+#define GPIO_ENABLE1_REG (GPIO + 0x002C)
+#define GPIO_ENABLE1_W1TS_REG (GPIO + 0x0030)
+#define GPIO_ENABLE1_W1TC_REG (GPIO + 0x0034)
+#define GPIO_IN1_REG (GPIO + 0x0040)
+
+#define GPIO_STATUS_REG (GPIO + 0x0044)
+#define GPIO_STATUS_W1TS_REG (GPIO + 0x0048)
+#define GPIO_STATUS_W1TC_REG (GPIO + 0x004C)
+#define GPIO_STATUS1_REG (GPIO + 0x0050)
+#define GPIO_STATUS1_W1TS_REG (GPIO + 0x0054)
+#define GPIO_STATUS1_W1TC_REG (GPIO + 0x0058)
+
+#define GPIO_PIN_COUNT 40
+#define GPIO_INVALID_PIN 0xFF
+
+#define IO_MUX_GPIO0_REG (IO_MUX + 0x44)
+#define IO_MUX_GPIO1_REG (IO_MUX + 0x88)
+#define IO_MUX_GPIO2_REG (IO_MUX + 0x40)
+#define IO_MUX_GPIO3_REG (IO_MUX + 0x84)
+#define IO_MUX_GPIO4_REG (IO_MUX + 0x48)
+#define IO_MUX_GPIO5_REG (IO_MUX + 0x6C)
+#define IO_MUX_GPIO6_REG (IO_MUX + 0x60)
+#define IO_MUX_GPIO7_REG (IO_MUX + 0x64)
+#define IO_MUX_GPIO8_REG (IO_MUX + 0x68)
+#define IO_MUX_GPIO9_REG (IO_MUX + 0x54)
+#define IO_MUX_GPIO10_REG (IO_MUX + 0x58)
+#define IO_MUX_GPIO11_REG (IO_MUX + 0x5C)
+#define IO_MUX_GPIO12_REG (IO_MUX + 0x34)
+#define IO_MUX_GPIO13_REG (IO_MUX + 0x38)
+#define IO_MUX_GPIO14_REG (IO_MUX + 0x30)
+#define IO_MUX_GPIO15_REG (IO_MUX + 0x3C)
+#define IO_MUX_GPIO16_REG (IO_MUX + 0x4C)
+#define IO_MUX_GPIO17_REG (IO_MUX + 0x50)
+#define IO_MUX_GPIO18_REG (IO_MUX + 0x70)
+#define IO_MUX_GPIO19_REG (IO_MUX + 0x74)
+#define IO_MUX_GPIO21_REG (IO_MUX + 0x78)
+#define IO_MUX_GPIO22_REG (IO_MUX + 0x7C)
+#define IO_MUX_GPIO23_REG (IO_MUX + 0x80)
+#define IO_MUX_GPIO25_REG (IO_MUX + 0x24)
+#define IO_MUX_GPIO26_REG (IO_MUX + 0x28)
+#define IO_MUX_GPIO27_REG (IO_MUX + 0x2C)
+#define IO_MUX_GPIO32_REG (IO_MUX + 0x1C)
+#define IO_MUX_GPIO33_REG (IO_MUX + 0x20)
+#define IO_MUX_GPIO34_REG (IO_MUX + 0x14)
+#define IO_MUX_GPIO35_REG (IO_MUX + 0x18)
+#define IO_MUX_GPIO36_REG (IO_MUX + 0x04)
+#define IO_MUX_GPIO37_REG (IO_MUX + 0x08)
+#define IO_MUX_GPIO38_REG (IO_MUX + 0x0C)
+#define IO_MUX_GPIO39_REG (IO_MUX + 0x10)
+
+#define IO_MUX_FUN_DRV_S 10
+#define IO_MUX_FUN_DRV_M 0x3
+#define IO_MUX_FUN_IE (1 << 9)
+#define IO_MUX_FUN_WPU (1 << 7)
+#define IO_MUX_FUN_WPD (1 << 8)
+#define IO_MUX_MCU_SEL_S 0
+#define IO_MUX_MCU_SEL_M 0x7
+#define IO_MUX_MCU_SEL_GPIO 2
+
 typedef enum {
-    GPIO_INPUT,
-    GPIO_OUTPUT,
-    GPIO_INPUT_PULLUP,
-    GPIO_INPUT_PULLDOWN
+  INPUT,
+  OUTPUT,
+  INPUT_PULLUP,
+  INPUT_PULLDOWN
 } gpio_mode_t;
 
 typedef enum {
-    GPIO_LOW,
-    GPIO_HIGH
+  LOW,
+  HIGH
 } gpio_state_t;
 
 typedef enum {
-    GPIO_OK,
-    GPIO_ERR_INVALID_PIN,
-    GPIO_ERR_UNSUPPORTED,
-    GPIO_ERR_NULL,
-    GPIO_ERR_UNKNOWN
+  GPIO_OK = 0,
+  GPIO_ERR_INVALID_PIN = -1,
+  GPIO_ERR_UNSUPPORTED = -2,
+  GPIO_ERR_NULL = -3,
+  GPIO_ERR_FLASH_PIN = -4,
+  GPIO_ERR_UNKNOWN = -5
 } gpio_error_t;
 
-#define INPUT     (1 << 0)
-#define OUTPUT    (1 << 1)
-#define SAFE      (1 << 2)
-#define STRAPPING (1 << 3)
-#define ADC       (1 << 4)
-#define PWM       (1 << 5)
+#define GPIO_INPUT (1 << 0)
+#define GPIO_OUTPUT (1 << 1)
+#define GPIO_SAFE (1 << 2)
+#define GPIO_STRAPPING (1 << 3)
+#define GPIO_ADC (1 << 4)
+#define GPIO_PWM (1 << 5)
 
 typedef struct {
-    uint8_t pin;
-    uint32_t flags;
+  uint8_t pin;
+  uint32_t flags;
 } gpio_capability_t;
 
 typedef struct {
-    uint8_t pin;
-    gpio_mode_t mode;
-    gpio_state_t state;
+  uint8_t pin;
+  gpio_mode_t mode;
+  gpio_state_t state;
 } gpio_t;
 
-typedef int (*gpio_op_t)(gpio_t*, void*);
+typedef struct {
+  uint8_t *pins;
+  gpio_mode_t *modes;
+  gpio_state_t *states;
+  size_t count;
+} gpio_batch_t;
 
-int gpio_init(gpio_t* gpio, void* args);
-int gpio_write(gpio_t* gpio, void* args);
-int gpio_read(gpio_t* gpio, void* args);
-int gpio_toggle(gpio_t* gpio, void* args);
-int gpio_analog_read(gpio_t* gpio, void* args);
-int gpio_analog_write(gpio_t* gpio, void* args);
-int gpio_attach_interrupt(gpio_t* gpio, void* args);
-int gpio_debounce(gpio_t* gpio, void* args);
-int gpio_sleep(gpio_t* gpio, void* args);
-int gpio_wake(gpio_t* gpio, void* args);
+typedef int (*gpio_op_t)(gpio_t *, void *);
+
+int gpio_init(gpio_t *gpio, void *args);
+int gpio_write(gpio_t *gpio, void *args);
+int gpio_read(gpio_t *gpio, void *args);
+int gpio_toggle(gpio_t *gpio, void *args);
+
+int gpio_init_batch(gpio_batch_t *batch);
+int gpio_write_batch(gpio_batch_t *batch);
+int gpio_read_batch(gpio_batch_t *batch);
+int gpio_toggle_batch(gpio_batch_t *batch);
+
+static inline int gpio_write_fast(uint8_t pin, gpio_state_t state) {
+  if (pin < 32) {
+    volatile uint32_t *reg = (uint32_t *)(state ? GPIO_OUT_W1TS_REG : GPIO_OUT_W1TC_REG);
+    *reg = (1U << pin);
+  } else if (pin < 40) {
+    volatile uint32_t *reg = (uint32_t *)(state ? GPIO_OUT1_W1TS_REG : GPIO_OUT1_W1TC_REG);
+    *reg = (1U << (pin - 32));
+  } else {
+    return GPIO_ERR_INVALID_PIN;
+  }
+
+  return GPIO_OK;
+}
+
+static inline gpio_state_t gpio_read_fast(uint8_t pin) {
+  if (pin < 32) {
+    volatile uint32_t *reg = (uint32_t *)GPIO_IN_REG;
+    return (*reg >> pin) & 1U ? HIGH : LOW;
+  } else if (pin < 40) {
+    volatile uint32_t *reg = (uint32_t *)GPIO_IN1_REG;
+    return (*reg >> (pin - 32)) & 1U ? HIGH : LOW;
+  }
+
+  return LOW;
+}
+
+static inline int gpio_toggle_fast(uint8_t pin) {
+  if (pin < 32) {
+    volatile uint32_t *reg = (uint32_t *)GPIO_OUT_REG;
+    *reg ^= (1U << pin);
+  } else if (pin < 40) {
+    volatile uint32_t *reg = (uint32_t *)GPIO_OUT1_REG;
+    *reg ^= (1U << (pin - 32));
+  } else {
+    return GPIO_ERR_INVALID_PIN;
+  }
+
+  return GPIO_OK;
+}
+
+static inline bool gpio_is_valid_pin(uint8_t pin) {
+  if (pin >= GPIO_PIN_COUNT) return false;
+  if (pin == 20 || pin == 24 || (pin >= 28 && pin <= 31)) return false;
+  
+  return true;
+}
+
+static inline bool gpio_is_flash_pin(uint8_t pin) {
+  return (pin >= 6 && pin <= 11);
+}
+
+static inline uint32_t gpio_get_iomux_reg(uint8_t pin) {
+  if (pin >= GPIO_PIN_COUNT) return 0;
+  
+  return *(gpio_iomux_reg + pin);
+}
+
+static inline int init(uint8_t pin, gpio_mode_t mode) {
+  gpio_t gpio = {
+    .pin = pin,
+    .mode = mode,
+    .state = LOW
+  };
+  
+  return gpio_init(&gpio, NULL);
+}
+
+static inline int set(uint8_t pin, gpio_state_t state) {
+  gpio_t gpio = {
+    .pin = pin,
+    .mode = GPIO_OUTPUT,
+    .state = state
+  };
+  
+  return gpio_write(&gpio, NULL);
+}
+
+static inline gpio_state_t read(uint8_t pin) {
+  gpio_t gpio = {
+    .pin = pin,
+    .mode = GPIO_INPUT,
+    .state = LOW
+  };
+  
+  gpio_read(&gpio, NULL);
+  return gpio.state;
+}
+
+static inline int flip(uint8_t pin) {
+  gpio_t gpio = {
+    .pin = pin,
+    .mode = GPIO_OUTPUT,
+    .state = LOW
+  };
+  
+  return gpio_toggle(&gpio, NULL);
+}
+
+extern gpio_op_t gpio_op[];
 
 enum {
-    OP_INIT,
-    OP_WRITE,
-    OP_READ,
-    OP_TOGGLE,
-    OP_ANALOG_READ,
-    OP_ANALOG_WRITE,
-    OP_ATTACH_INTERRUPT,
-    OP_DEBOUNCE,
-    OP_SLEEP,
-    OP_WAKE,
-    OP_COUNT
-};
-
-gpio_op_t gpio_op[OP_COUNT] = {
-    gpio_init,
-    gpio_write,
-    gpio_read,
-    gpio_toggle,
-    gpio_analog_read,
-    gpio_analog_write,
-    gpio_attach_interrupt,
-    gpio_debounce,
-    gpio_sleep,
-    gpio_wake
+  OP_INIT,
+  OP_WRITE,
+  OP_READ,
+  OP_TOGGLE,
+  OP_COUNT
 };
 
 #endif
