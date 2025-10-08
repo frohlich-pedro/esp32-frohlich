@@ -7,20 +7,21 @@ void app_main(void) {
     .state = LOW
   };
   
-  gpio_t button = {
+  gpio_t but = {
     .pin = 12,
     .mode = INPUT_PULLUP,
     .state = HIGH
   };
   
   gpio_op[OP_INIT](&led, NULL);
-  gpio_op[OP_INIT](&button, NULL);
+  gpio_op[OP_INIT](&but, NULL);
 
   while (true) {
-    gpio_op[OP_READ](&button, NULL);
-  
-    if (!(button.state == HIGH)) {
-      gpio_op[OP_TOGGLE](&led, NULL);
+    int r = gpio_op[OP_READ](&but, NULL);
+    if (r == GPIO_OK) {
+      if (!(button.state == HIGH)) {
+        gpio_op[OP_TOGGLE](&led, NULL);
+      }
     }
   }
 }
