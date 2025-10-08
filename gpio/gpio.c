@@ -118,12 +118,16 @@ int gpio_init(gpio_t* gpio, void* args) {
     volatile uint32_t* iomux_reg = (uint32_t*)iomux_addr;
     uint32_t val = *iomux_reg;
 
-    val &= ~(IO_MUX_FUN_WPU | IO_MUX_FUN_WPD);
+    val &= ~(IO_MUX_FUN_WPU | IO_MUX_FUN_WPD | IO_MUX_FUN_IE);
 
     if (gpio->mode == INPUT_PULLUP) {
       val |= IO_MUX_FUN_WPU;
     } else if (gpio->mode == INPUT_PULLDOWN) {
       val |= IO_MUX_FUN_WPD;
+    }
+
+    if (gpio->mode == INPUT || gpio->mode == INPUT_PULLUP || gpio->mode == INPUT_PULLDOWN) {
+      val |= IO_MUX_FUN_IE;
     }
 
     val &= ~(IO_MUX_MCU_SEL_M << IO_MUX_MCU_SEL_S);
@@ -158,105 +162,6 @@ int gpio_toggle(gpio_t* gpio, void* args) {
   if (result == GPIO_OK) gpio->state = gpio_read_fast(gpio->pin);
 
   return result;
-}
-
-int gpio_init_batch(gpio_batch_t* batch) {
-  if (!batch || !batch->pins || !batch->modes) return GPIO_ERR_NULL;
-
-  uint8_t* p = batch->pins;
-  uint8_t* mode = batch->modes;
-  uint8_t* e = p + batch->count;
-
-  while (p < e) {
-    uint8_t pin = *p++;
-    uint8_t m = *mode++;
-
-    gpio_t gpio = {
-      .pin = pin,
-      .mode = m,
-      .state = LOW
-    };
-
-    int result = gpio_init(&gpio, NULL);
-    if (result != GPIO_OK) return result;
-  }
-
-  return GPIO_OK;
-}
-
-int gpio_write_batch(gpio_batch_t* batch) {
-  if (!batch || !batch->pins || !batch->states) return GPIO_ERR_NULL;
-
-  uint32_t set_mask_0 = 0, clr_mask_0 = 0;
-  uint32_t set_mask_1 = 0, clr_mask_1 = 0;
-
-  uint8_t* pin = batch->pins;
-  uint8_t* state = batch->states;
-  uint8_t* end = pin + batch->count;
-
-  while (pin < end) {
-    uint8_t p = *pin++;
-    uint8_t s = *state++;
-
-    if (!gpio_is_valid_pin(p)) continue;
-
-    if (p < 32) {
-      if (s == HIGH)
-        set_mask_0 |= (1U << p);
-      else
-        clr_mask_0 |= (1U << p);
-    } else {
-      if (s == HIGH)
-        set_mask_1 |= (1U << (p - 32));
-      else
-        clr_mask_1 |= (1U << (p - 32));
-    }
-  }
-
-  if (set_mask_0) *(volatile uint32_t*)GPIO_OUT_W1TS_REG = set_mask_0;
-  if (clr_mask_0) *(volatile uint32_t*)GPIO_OUT_W1TC_REG = clr_mask_0;
-  if (set_mask_1) *(volatile uint32_t*)GPIO_OUT1_W1TS_REG = set_mask_1;
-  if (clr_mask_1) *(volatile uint32_t*)GPIO_OUT1_W1TC_REG = clr_mask_1;
-
-  return GPIO_OK;
-}
-
-int gpio_read_batch(gpio_batch_t* batch) {
-  if (!batch || !batch->pins || !batch->states) return GPIO_ERR_NULL;
-
-  uint8_t* p = batch->pins;
-  uint8_t* state = batch->states;
-  uint8_t* e = p + batch->count;
-
-  uint32_t val_0 = *(volatile uint32_t*)GPIO_IN_REG;
-  uint32_t val_1 = *(volatile uint32_t*)GPIO_IN1_REG;
-
-  while (p < e) {
-    uint8_t pin = *p++;
-    if (!gpio_is_valid_pin(pin)) {
-      state++;
-      continue;
-    }
-
-    *state++ = (pin < 32) ? ((val_0 >> pin) & 1U ? HIGH : LOW) : ((val_1 >> (pin - 32)) & 1U ? HIGH : LOW);
-  }
-
-  return GPIO_OK;
-}
-
-int gpio_toggle_batch(gpio_batch_t* batch) {
-  if (!batch || !batch->pins) return GPIO_ERR_NULL;
-
-  uint8_t* p = batch->pins;
-  uint8_t* e = p + batch->count;
-
-  while (p < e) {
-    uint8_t pin = *p++;
-    if (!gpio_is_valid_pin(pin)) continue;
-    gpio_toggle_fast(pin);
-  }
-
-  return batch->states ? gpio_read_batch(batch) : GPIO_OK;
 }
 
 gpio_op_t gpio_op[OP_COUNT] = {
