@@ -169,24 +169,12 @@ typedef struct {
   gpio_state_t state;
 } gpio_t;
 
-typedef struct {
-  uint8_t *pins;
-  gpio_mode_t *modes;
-  gpio_state_t *states;
-  size_t count;
-} gpio_batch_t;
-
 typedef int (*gpio_op_t)(gpio_t *, void *);
 
 int gpio_init(gpio_t *gpio, void *args);
 int gpio_write(gpio_t *gpio, void *args);
 int gpio_read(gpio_t *gpio, void *args);
 int gpio_toggle(gpio_t *gpio, void *args);
-
-int gpio_init_batch(gpio_batch_t *batch);
-int gpio_write_batch(gpio_batch_t *batch);
-int gpio_read_batch(gpio_batch_t *batch);
-int gpio_toggle_batch(gpio_batch_t *batch);
 
 static inline int gpio_write_fast(uint8_t pin, gpio_state_t state) {
   if (pin < 32) {
@@ -243,47 +231,6 @@ static inline uint32_t gpio_get_iomux_reg(uint8_t pin) {
   if (pin >= GPIO_PIN_COUNT) return 0;
   
   return *(gpio_iomux_reg + pin);
-}
-
-static inline int init(uint8_t pin, gpio_mode_t mode) {
-  gpio_t gpio = {
-    .pin = pin,
-    .mode = mode,
-    .state = LOW
-  };
-  
-  return gpio_init(&gpio, NULL);
-}
-
-static inline int set(uint8_t pin, gpio_state_t state) {
-  gpio_t gpio = {
-    .pin = pin,
-    .mode = GPIO_OUTPUT,
-    .state = state
-  };
-  
-  return gpio_write(&gpio, NULL);
-}
-
-static inline gpio_state_t read(uint8_t pin) {
-  gpio_t gpio = {
-    .pin = pin,
-    .mode = GPIO_INPUT,
-    .state = LOW
-  };
-  
-  gpio_read(&gpio, NULL);
-  return gpio.state;
-}
-
-static inline int flip(uint8_t pin) {
-  gpio_t gpio = {
-    .pin = pin,
-    .mode = GPIO_OUTPUT,
-    .state = LOW
-  };
-  
-  return gpio_toggle(&gpio, NULL);
 }
 
 extern gpio_op_t gpio_op[];
