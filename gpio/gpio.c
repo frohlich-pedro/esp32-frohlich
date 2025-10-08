@@ -1,6 +1,6 @@
 #include "gpio.h"
 
-static const uint32_t gpio_iomux_reg[GPIO_PIN_COUNT] = {
+const uint32_t gpio_iomux_reg[GPIO_PIN_COUNT] = {
   IO_MUX_GPIO0_REG,
   IO_MUX_GPIO1_REG,
   IO_MUX_GPIO2_REG,
@@ -93,7 +93,7 @@ int gpio_init(gpio_t* gpio, void* args) {
 
   uint8_t pin = gpio->pin;
 
-  uint8_t caps = *(gpio_capabilities + pin);
+  uint8_t caps = gpio_capabilities[pin];
   if (gpio->mode == OUTPUT && !(caps & GPIO_OUTPUT)) return GPIO_ERR_UNSUPPORTED;
   if ((gpio->mode == INPUT || gpio->mode == INPUT_PULLUP || gpio->mode == INPUT_PULLDOWN) && !(caps & GPIO_INPUT)) return GPIO_ERR_UNSUPPORTED;
 
@@ -139,28 +139,37 @@ int gpio_init(gpio_t* gpio, void* args) {
   return GPIO_OK;
 }
 
-int gpio_write(gpio_t* gpio, void* args) {
-  if (!gpio) return GPIO_ERR_NULL;
-  if (!gpio_is_valid_pin(gpio->pin)) return GPIO_ERR_INVALID_PIN;
-
-  return gpio_write_fast(gpio->pin, gpio->state);
-}
-
 int gpio_read(gpio_t* gpio, void* args) {
   if (!gpio) return GPIO_ERR_NULL;
   if (!gpio_is_valid_pin(gpio->pin)) return GPIO_ERR_INVALID_PIN;
-
+  
+  uint8_t caps = gpio_capabilities[gpio->pin];
+  if (!(caps & GPIO_INPUT)) return GPIO_ERR_UNSUPPORTED;
+  
   gpio->state = gpio_read_fast(gpio->pin);
   return GPIO_OK;
+}
+
+int gpio_write(gpio_t* gpio, void* args) {
+  if (!gpio) return GPIO_ERR_NULL;
+  if (!gpio_is_valid_pin(gpio->pin)) return GPIO_ERR_INVALID_PIN;
+  
+  uint8_t caps = gpio_capabilities[gpio->pin];
+  if (!(caps & GPIO_OUTPUT)) return GPIO_ERR_UNSUPPORTED;
+  
+  return gpio_write_fast(gpio->pin, gpio->state);
 }
 
 int gpio_toggle(gpio_t* gpio, void* args) {
   if (!gpio) return GPIO_ERR_NULL;
   if (!gpio_is_valid_pin(gpio->pin)) return GPIO_ERR_INVALID_PIN;
-
+  
+  uint8_t caps = gpio_capabilities[gpio->pin];
+  if (!(caps & GPIO_OUTPUT)) return GPIO_ERR_UNSUPPORTED;
+  
   int result = gpio_toggle_fast(gpio->pin);
   if (result == GPIO_OK) gpio->state = gpio_read_fast(gpio->pin);
-
+  
   return result;
 }
 
