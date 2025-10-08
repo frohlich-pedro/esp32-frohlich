@@ -28,7 +28,7 @@ gpio_op_t gpio_op[] = {
 
 ```
 
-Code example:
+In this code example we turn a led on/off by pressing a button:
 ```c
 #include "gpio/gpio.h"
 
